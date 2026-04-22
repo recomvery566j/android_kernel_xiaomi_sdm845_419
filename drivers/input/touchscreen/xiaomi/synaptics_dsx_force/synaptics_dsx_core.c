@@ -1876,11 +1876,6 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 	return touch_count;
 }
 
-	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
-
-	return touch_count;
-}
-
 static void synaptics_rmi4_report_key(struct synaptics_rmi4_data *rmi4_data,
 				      int key, int status)
 {
