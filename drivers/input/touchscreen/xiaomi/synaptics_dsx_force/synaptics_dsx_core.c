@@ -42,6 +42,7 @@
 #include <linux/regulator/consumer.h>
 #include "synaptics_dsx.h"
 #include "synaptics_dsx_core.h"
+#include <linux/jiffies.h>
 
 #ifdef KERNEL_ABOVE_2_6_38
 #include <linux/input/mt.h>
@@ -1498,22 +1499,32 @@ static int synaptics_rmi4_f11_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		}
 	}
 
-	if (touch_count == 0) {
-		input_report_key(rmi4_data->input_dev,
-				BTN_TOUCH, 0);
-		input_report_key(rmi4_data->input_dev,
-				BTN_TOOL_FINGER, 0);
+        if (touch_count == 0) {
+		        input_report_key(rmi4_data->input_dev,
+				                BTN_TOUCH, 0);
+		        input_report_key(rmi4_data->input_dev,
+				                BTN_TOOL_FINGER, 0);
 #ifndef TYPE_B_PROTOCOL
-		input_mt_sync(rmi4_data->input_dev);
+		        input_mt_sync(rmi4_data->input_dev);
 #endif
-	}
+	    }
 
-	input_sync(rmi4_data->input_dev);
+	    {
+		        static unsigned long last_sync_time_f11 = 0;
+		        static unsigned char last_touch_count_f11 = 0;
+		        unsigned long current_time_f11 = jiffies;
+
+		        if (touch_count != last_touch_count_f11 || time_after(current_time_f11, last_sync_time_f11 + msecs_to_jiffies(12))) {
+			            input_sync(rmi4_data->input_dev);
+			            last_sync_time_f11 = current_time_f11;
+			            last_touch_count_f11 = touch_count;
+		        }
+	    }
 
 exit:
-	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
+	    mutex_unlock(&(rmi4_data->rmi4_report_mutex));
 
-	return touch_count;
+	    return touch_count;
 }
 
 static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
