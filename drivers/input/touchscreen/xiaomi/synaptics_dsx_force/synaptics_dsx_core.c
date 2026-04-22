@@ -1846,14 +1846,14 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 #endif
 
 		if (rmi4_data->stylus_enable) {
-			    stylus_presence = 0;
-			    input_report_key(rmi4_data->stylus_dev,
-					            BTN_TOUCH, 0);
-			    input_report_key(rmi4_data->stylus_dev,
-					            BTN_TOOL_PEN, 0);
+			stylus_presence = 0;
+			input_report_key(rmi4_data->stylus_dev,
+					BTN_TOUCH, 0);
+			input_report_key(rmi4_data->stylus_dev,
+					BTN_TOOL_PEN, 0);
 			if (rmi4_data->eraser_enable) {
 				input_report_key(rmi4_data->stylus_dev,
-						        BTN_TOOL_RUBBER, 0);
+						BTN_TOOL_RUBBER, 0);
 			}
 		}
 
@@ -1866,11 +1866,16 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		unsigned long current_time_f12 = jiffies;
 
 		if (touch_count != last_touch_count_f12 || time_after(current_time_f12, last_sync_time_f12 + msecs_to_jiffies(12))) {
-			    input_sync(rmi4_data->input_dev);
-			    last_sync_time_f12 = current_time_f12;
-			    last_touch_count_f12 = touch_count;
+			input_sync(rmi4_data->input_dev);
+			last_sync_time_f12 = current_time_f12;
+			last_touch_count_f12 = touch_count;
 		}
 	}
+
+	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
+
+	return touch_count;
+}
 
 	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
 
