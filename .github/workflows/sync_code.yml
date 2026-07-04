@@ -1,8 +1,11 @@
 name: Sync Codebase
+
 on:
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -11,18 +14,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: target_repo
+
       - name: Checkout source repository
         uses: actions/checkout@v4
         with:
           repository: duckyduckG/android_kernel_xiaomi_sdm845_419
           path: source_repo
+
       - name: Process and sync files
         run: |
           cd target_repo
-          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.github' -exec rm -rf {} +
-          rsync -av --exclude='.git/' --exclude='.github/workflows/' ../source_repo/ ./
+          
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/' \
+            --exclude='drivers/clk/qcom/gpucc-sdm845.c' \
+            --exclude='arch/arm64/boot/dts/qcom/sdm845-v2.dtsi' \
+            --exclude='drivers/clk/qcom/vdd-level-sdm845.h' \
+            ../source_repo/ ./
+            
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Auto overwrite codebase excluding actions" || echo "No changes to commit"
+          git commit -m "Auto sync codebase preserving specific custom kernel modifications" || echo "No changes to commit"
           git push
